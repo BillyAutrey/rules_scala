@@ -20,6 +20,14 @@ scala_test(
     reporter_class = "test.scala_test.CustomReporter",
 )
 
+scala_test(
+    name = "shard_test",
+    srcs = [
+        "ShardTest.scala",
+    ],
+    shard_count = 2,
+)
+
 # Check that we can run scala tests in external workspaces.
 test_suite(
     name = "external_scala_test",

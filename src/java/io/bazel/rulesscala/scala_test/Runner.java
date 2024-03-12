@@ -1,11 +1,13 @@
 package io.bazel.rulesscala.scala_test;
 
 import com.google.devtools.build.runfiles.Runfiles;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +32,10 @@ public class Runner {
   private static final String RULES_SCALA_ARGS_FILE = "RULES_SCALA_ARGS_FILE";
 
   public static void main(String[] args) throws IOException {
-    org.scalatest.tools.Runner.main(extendArgs(args, System.getenv()));
+    if(ShardUtils.isShardingEnabled())
+      org.scalatest.tools.Runner.main(testsInShard(args, System.getenv()));
+    else
+      org.scalatest.tools.Runner.main(extendArgs(args, System.getenv()));
   }
 
   private static String[] extendArgs(String[] args, Map<String, String> env) throws IOException {
@@ -41,6 +46,7 @@ public class Runner {
 
   private static String[] extendFromFileArgs(String[] args) throws IOException {
     String runnerArgsFileKey = System.getProperty(RULES_SCALA_ARGS_FILE);
+    //System.out.println("Args file: " + runnerArgsFileKey);
     if (runnerArgsFileKey == null || runnerArgsFileKey.trim().isEmpty())
       throw new IllegalArgumentException(RULES_SCALA_ARGS_FILE + " is null or empty.");
 
@@ -95,5 +101,23 @@ public class Runner {
       String runpath = String.join(File.separator, runpathElements);
       runnerArgs.set(runpathFlag + 1, runpath);
     }
+  }
+
+  private static String[] testsInShard(String[] args, Map<String, String> getenv) throws IOException {
+    //touch TEST_SHARD_STATUS_FILE
+    ShardUtils.touchShardFile();
+
+    // get TEST_SHARD_INDEX
+    int shardIndex = ShardUtils.getShardIndex();
+    System.out.println("Shard index: " + shardIndex);
+
+    // Build the list of tests where i % shards == shardIndex
+    return new String[0];
+
+    // Build the arg list to only run the above list
+  }
+
+  private static List<String> discoverTests() {
+    return new ArrayList<String>();
   }
 }
